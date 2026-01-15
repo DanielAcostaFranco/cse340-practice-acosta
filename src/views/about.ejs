@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About page</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<%- include('partials/header') %>
+    <main>
+        <h1><%= title %></h1>
+        <p>Hi, my name is Daniel Acosta, and I'm a Software
+            Engineering Student, and I'd like to
+            work for one big Tech Company in the future.
+
+            This is a list of my hobbies.
+        <div class="hobbies-list">
+            <li>Playing Soccer</li>
+            <li>Learning new things</li>
+            <li>Playing drums</li>
+            <li>Singing</li>
+            <br>
+        </div>
+
+        <img class="family-picture" src="/images/family.jpeg" alt="my family">
+    </main>
+<%- include('partials/footer') %>
+</body>
+</html>
