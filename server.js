@@ -1,17 +1,18 @@
-// Imports
-
 import express from 'express';
-import { fileURLToPath } from 'url';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Import MVC components
+import routes from './src/controllers/routes.js';
+import { addLocalVariables } from './src/middleware/global.js';
 
 /**
- * Declare Importante Variables
+ * Server configuration
  */
-const NODE_ENV = process.env.NODE_ENV || 'production';
-const PORT = process.env.PORT || 3000;
-const name = process.env.NAME; // <-- NEW
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
+const PORT = process.env.PORT || 3000;
 
 /**
  * Setup Express Server
@@ -19,73 +20,27 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 /**
- * Configure Express middleware
+ * Configure Express
  */
-
-// Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Set EJS as the templating engine
 app.set('view engine', 'ejs');
-
-// Tell Express where to find your templates
 app.set('views', path.join(__dirname, 'src/views'));
 
 /**
- * Declare Routes
+ * Global Middleware
  */
-// app.get('/', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'src/views/home.html'));
-// });
-
-// app.get('/about', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'src/views/about.html'));
-// });
-
-// app.get('/products', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'src/views/products.html'));
-// });
-
-/**
- * Global template variables middleware
- * 
- * Makes common variables available to all EJS templates without having to pass
- * them individually from each route handler
- */
-app.use((req, res, next) => {
-    // Make NODE_ENV available to all templates
-    res.locals.NODE_ENV = NODE_ENV.toLowerCase() || 'production';
-
-    // Continue to the next middleware or route handler
-    next();
-});
+app.use(addLocalVariables);
 
 /**
  * Routes
  */
-app.get('/', (req, res) => {
-    const title = 'Welcome Home';
-    res.render('home', { title });
-});
+app.use('/', routes);
 
-app.get('/about', (req, res) => {
-    const title = 'About Me';
-    res.render('about', { title });
-});
+/**
+ * Error Handling
+ */
 
-app.get('/products', (req, res) => {
-    const title = 'Our Products';
-    res.render('products', { title });
-});
-
-// Test route for 500 errors
-app.get('/test-error', (req, res, next) => {
-    const err = new Error('This is a test error');
-    err.status = 500;
-    next(err);
-});
-
-// Catch-all route for 404 errors
+// 404 handler
 app.use((req, res, next) => {
     const err = new Error('Page Not Found');
     err.status = 404;
@@ -107,7 +62,8 @@ app.use((err, req, res, next) => {
     const context = {
         title: status === 404 ? 'Page Not Found' : 'Server Error',
         error: NODE_ENV === 'production' ? 'An error occurred' : err.message,
-        stack: NODE_ENV === 'production' ? null : err.stack
+        stack: NODE_ENV === 'production' ? null : err.stack,
+        NODE_ENV // Our WebSocket check needs this and its convenient to pass along
     };
 
     // Render the appropriate error template with fallback
@@ -121,7 +77,9 @@ app.use((err, req, res, next) => {
     }
 });
 
-// When in development mode, start a WebSocket server for live reloading
+/**
+ * Start WebSocket Server in Development Mode; used for live reloading
+ */
 if (NODE_ENV.includes('dev')) {
     const ws = await import('ws');
 
@@ -141,9 +99,9 @@ if (NODE_ENV.includes('dev')) {
     }
 }
 
-
-// Start the server and listen on the specified port
-
+/**
+ * Start Server
+ */
 app.listen(PORT, () => {
     console.log(`Server is running on http://127.0.0.1:${PORT}`);
 });
