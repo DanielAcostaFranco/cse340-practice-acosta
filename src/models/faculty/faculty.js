@@ -82,7 +82,7 @@ const getAllFaculty = () => {
   // Convert object -> array and keep the id
   return Object.entries(faculty).map(([id, member]) => ({
     id,
-    ...member
+    ...member || null
   }));
 };
 
