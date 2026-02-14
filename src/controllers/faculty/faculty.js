@@ -1,5 +1,5 @@
 // Import model functions
-import { getFacultyById, getSortedFaculty } from '../../models/faculty/faculty.js';
+import { getFacultyById, getFacultyBySlug, getSortedFaculty } from '../../models/faculty/faculty.js';
 
 /**
  * Route handler for the faculty list page
@@ -7,14 +7,14 @@ import { getFacultyById, getSortedFaculty } from '../../models/faculty/faculty.j
  * This page displays ALL faculty members
  * Sorting is handled here using query parameters
  */
-const facultyListPage = (req, res) => {
+const facultyListPage = async (req, res) => {
 
   // Get sort option from query string (name, title, department)
   // Default sort is by name
   const sortBy = req.query.sort || 'name';
 
   // Sort faculty list BEFORE rendering
-  const sortedFaculty = getSortedFaculty(sortBy);
+  const sortedFaculty = await getSortedFaculty(sortBy);
 
   // Render faculty list page
   res.render('faculty/list', {
@@ -30,34 +30,43 @@ const facultyListPage = (req, res) => {
  * This page displays ONE faculty member
  * NO sorting is done here
  */
-const facultyDetailPage = (req, res, next) => {
+const facultyDetailPage = async (req, res, next) => {
+  try {
+    // Get faculty id/slug from route params
+    const facultyParam = req.params.facultyId;
 
-  // Get faculty id from route params
-  const facultyId = req.params.facultyId;
+    // Detect whether param is a numeric id or a textual slug
+    const isNumericId = /^\d+$/.test(facultyParam);
 
-  // Get faculty member by id
-  const faculty = getFacultyById(facultyId);
+    // Fetch the faculty member using the appropriate helper
+    const faculty = isNumericId
+      ? await getFacultyById(Number(facultyParam))
+      : await getFacultyBySlug(facultyParam);
 
-  // If faculty does not exist, trigger 404 error
-  if (!faculty) {
-    const err = new Error(`Faculty member: ${facultyId} not found.`);
-    err.status = 404;
-    return next(err);
+    // If faculty does not exist, trigger 404 error
+    if (!faculty || !faculty.id) {
+      const err = new Error(`Faculty member: ${facultyParam} not found.`);
+      err.status = 404;
+      return next(err);
+    }
+
+    // Render faculty detail page
+    res.render('faculty/detail', {
+      title: faculty.name,
+      faculty,
+
+      // Display labels (used in EJS)
+      name: `Name: ${faculty.name}`,
+      office: `Office: ${faculty.office}`,
+      phone: `Phone: ${faculty.phone}`,
+      email: `Email: ${faculty.email}`,
+      department: `Department: ${faculty.department}`,
+      titleLabel: `Title: ${faculty.title}` // avoid overwriting page title
+    });
+  } catch (error) {
+    // Pass any unexpected errors to the global error handler
+    return next(error);
   }
-
-  // Render faculty detail page
-  res.render('faculty/detail', {
-    title: faculty.name,
-    faculty,
-
-    // Display labels (used in EJS)
-    name: `Name: ${faculty.name}`,
-    office: `Office: ${faculty.office}`,
-    phone: `Phone: ${faculty.phone}`,
-    email: `Email: ${faculty.email}`,
-    department: `Department: ${faculty.department}`,
-    titleLabel: `Title: ${faculty.title}` // avoid overwriting page title
-  });
 };
 
 // Export route handlers
