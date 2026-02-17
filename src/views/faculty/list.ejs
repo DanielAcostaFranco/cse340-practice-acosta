@@ -24,7 +24,7 @@
       <% faculty.forEach(member => { %>
         <div class="section-card">
           <h3>
-            <a href="/faculty/<%= member.id %>"><%= member.name %></a>
+            <a href="/faculty/<%= member.slug %>"><%= member.name %></a>
           </h3>
           <div class="section-professor">
             <strong>Department:</strong> <%= member.department %>
