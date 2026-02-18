@@ -43,7 +43,8 @@ const processLogin = async (req, res) => {
         // TODO: Redirect back to /login
         return res.redirect('/login');
     }
-
+    console.log('hi, I am here');
+    
     // TODO: Extract email and password from req.body
         const { email, password } = req.body;
     try {
