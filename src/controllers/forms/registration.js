@@ -11,22 +11,31 @@ const router = Router();
 const registrationValidation = [
     body('name')
         .trim()
-        .isLength({ min: 2 })
-        .withMessage('Name must be at least 2 characters'),
+        .isLength({ min: 2, max: 50})
+        .withMessage('Name must be between 2 and 50 characters')
+        .matches(/^[a-zA-Z\s'-]+$/)
+        .withMessage('Name can only contain letters, spaces, hyphens and apostrophes'),
     body('email')
         .trim()
         .isEmail()
         .normalizeEmail()
-        .withMessage('Must be a valid email address'),
+        .withMessage('Must be a valid email address')
+        .isLength({ max: 255 })
+        .withMessage('Email address is too long'),
     body('emailConfirm')
         .trim()
         .custom((value, { req }) => value === req.body.email)
         .withMessage('Email addresses must match'),
     body('password')
-        .isLength({ min: 8 })
+        .isLength({ min: 8, max: 128 })
+        .withMessage('Password must be between 8 and 128 characters')
         .matches(/[0-9]/)
         .withMessage('Password must contain at least one number')
-        .matches(/[!@#$%^&*]/)
+        .matches(/[A-Z]/)
+        .withMessage('Password must contain at least one uppercase letter')
+        .matches(/[a-z]/)
+        .withMessage('Password must contain at least one lowercase letter')
+        .matches(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/)
         .withMessage('Password must contain at least one special character'),
     body('passwordConfirm')
         .custom((value, { req }) => value === req.body.password)
@@ -53,7 +62,9 @@ const processRegistration = async (req, res) => {
 
     if (!errors.isEmpty()) {
         // TODO: Log validation errors to console for debugging
-        console.error('Validation errors:', errors.array());
+        errors.array().forEach(error => {
+            req.flash('error', error.msg);
+        });
         // TODO: Redirect back to /register
         return res.redirect('/register');
     }
@@ -70,8 +81,9 @@ const processRegistration = async (req, res) => {
 
         if (emailUsed) {
             // TODO: Log message: 'Email already registered'
-            console.log('Email already registered');
-            // TODO: Redirect back to /register
+            
+            req.flash('error', 'User with this email already exists');
+            req.flash('error', 'Please use a different email address or log in instead');
             return res.redirect('/register');
         }
 
@@ -84,13 +96,15 @@ const processRegistration = async (req, res) => {
         await saveUser(name, email, hashedPassword);
 
         // TODO: Log success message to console
-        console.log("User registered successfully");
+        req.flash('success', 'Registration successful! You can now log in.');
+        res.redirect('/login');
         // TODO: Redirect to /register/list to show successful registration
-        res.redirect('/register/list');
         // NOTE: Later when we add authentication, we'll change this to require login first
     } catch (error) {
         // TODO: Log the error to console
-        console.error('Error:', error);
+        errors.array().forEach(error => {
+            req.flash('error', error);
+        });
         // TODO: Redirect back to /register
         res.redirect('/register');
     }
