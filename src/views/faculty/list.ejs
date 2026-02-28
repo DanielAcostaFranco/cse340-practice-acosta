@@ -23,6 +23,9 @@
     <div class="section-list">
       <% faculty.forEach(member => { %>
         <div class="section-card">
+          <div class="faculty-card">
+            <img class="faculty-photo" src="/images/faculty/<%= member.slug %>.jpg" alt="<%= member.name %>">
+          </div>
           <h3>
             <a href="/faculty/<%= member.slug %>"><%= member.name %></a>
           </h3>

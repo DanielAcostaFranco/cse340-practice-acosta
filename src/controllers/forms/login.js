@@ -1,24 +1,9 @@
-import { body, validationResult } from 'express-validator';
+import { validationResult } from 'express-validator';
 import { findUserByEmail, verifyPassword } from '../../models/forms/login.js';
 import { Router } from 'express';
+import { loginValidation } from '../../middleware/validation/forms.js';
 
 const router = Router();
-
-/**
- * Validation rules for login form
- */
-const loginValidation = [
-    body('email')
-        .trim()
-        .isEmail()
-        .withMessage('Please provide a valid email address')
-        .normalizeEmail(),
-
-    body('password')
-        .notEmpty()
-        .isLength({ min: 8, max: 128 })
-        .withMessage('Password must be between 8 and 128 characters')
-];
 
 /**
  * Display the login form.
@@ -40,7 +25,9 @@ const processLogin = async (req, res) => {
 
     if (!errors.isEmpty()) {
         // TODO: Log validation errors to console
-        console.error('Validation errors:', errors.array());
+        errors.array().forEach(error => {
+        req.flash('error', error.msg);
+        });
         // TODO: Redirect back to /login
         return res.redirect('/login');
     }
