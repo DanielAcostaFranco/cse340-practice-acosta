@@ -31,7 +31,6 @@ const processLogin = async (req, res) => {
         // TODO: Redirect back to /login
         return res.redirect('/login');
     }
-    console.log('hi, I am here');
     
     // TODO: Extract email and password from req.body
         const { email, password } = req.body;
@@ -54,9 +53,17 @@ const processLogin = async (req, res) => {
         delete user.password;
 
         // TODO: Store user in session: req.session.user = user
-            req.session.user = user;
-        // TODO: Redirect to /dashboard
-        res.redirect('/dashboard');
+        req.session.user = user;
+        // Save session explicitly before redirect to ensure it's persisted
+        req.session.save((err) => {
+            if (err) {
+                console.error('Error saving session:', err);
+                return res.redirect('/login');
+            }
+            // TODO: Redirect to /dashboard
+            res.redirect('/dashboard');
+        });
+        return;
     } catch (error) {
         // Model functions do not catch errors, so handle them here
         console.error('Error during login process:', error);

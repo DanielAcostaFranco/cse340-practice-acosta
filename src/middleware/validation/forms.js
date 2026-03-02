@@ -9,6 +9,8 @@ const loginValidation = [
         .trim()
         .isEmail()
         .withMessage('Please provide a valid email address')
+        .isLength({ max: 255 })
+        .withMessage('Email address is too long')
         .normalizeEmail(),
 
     body('password')

@@ -79,11 +79,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 /**
- * Global Middleware
- */
-app.use(addLocalVariables);
-
-/**
  * Routes
  */
 app.use('/', routes);
