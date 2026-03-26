@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { validationResult } from 'express-validator';
 import bcrypt from 'bcrypt';
-import { 
-    emailExists, 
-    saveUser, 
+import {
+    emailExists,
+    saveUser,
     getAllUsers,
     getUserById,
     updateUser,
@@ -24,7 +24,7 @@ const showRegistrationForm = (req, res) => {
 };
 
 /**
- * Handle user registration with validation and password hashing.
+ * Handle user registration with validation and  hashing.
  */
 const processRegistration = async (req, res) => {
     const errors = validationResult(req);
